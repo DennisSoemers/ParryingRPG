@@ -16,7 +16,7 @@ The plugin can be downloaded from TODO [its NexusMods page]().
 At runtime, the plugin has the following requirements. Any user of this plugin (or mods that in turn require this plugin) need to have this installed locally.
 
 - The Elder Scrolls V: Skyrim Special Edition.
-  - Tested with versions 1.5.97 (SSE).
+  - Tested with version 1.5.97 (SSE).
   - Assumed compatible with versions 1.6.xxx (including GOG) and Skyrim VR, thanks to [CommonLibSSE NG](https://github.com/CharmedBaryon/CommonLibSSE-NG).
 - [Skyrim Script Extender](https://skse.silverlock.org/)
 - [Address Library for SKSE Plugins](https://www.nexusmods.com/skyrimspecialedition/mods/32444)

@@ -1,10 +1,5 @@
-#include <OnEquipEventHandler.h>
-#include <OnHitEventHandler.h>
-#include <Papyrus.h>
-
 #include <stddef.h>
 
-using namespace RE::BSScript;
 using namespace SKSE;
 using namespace SKSE::log;
 using namespace SKSE::stl;
@@ -44,31 +39,14 @@ namespace {
     }
 
    /**
-    * Initialize the event sink, which lets us respond to events
-    * sent by the game engine.
+    * Initialize the hooks.
     */
-    void InitializeEventSink() {
-        log::trace("Initializing event sink...");
-        auto scriptEventSource = RE::ScriptEventSourceHolder::GetSingleton();
-        if (scriptEventSource) {
-            scriptEventSource->AddEventSink(&OnEquipEvents::OnEquipEventHandler::GetSingleton());
-            scriptEventSource->AddEventSink(&OnHitEvents::OnHitEventHandler::GetSingleton());
-            log::trace("Event sink initialized.");
-        } else {
-            stl::report_and_fail("Failed to initialize event sink.");
-        }
-    }
+    void InitializeHooks() {
+        log::trace("Initializing hooks...");
 
-    /** 
-     * Register new Papyrus functions.
-     */
-    void InitializePapyrus() { 
-        log::trace("Initializing Papyrus bindings...");
-        if (GetPapyrusInterface()->Register(PAPER::Bind)) {
-            log::debug("Papyrus functions bound.");
-        } else {
-            stl::report_and_fail("Failure to register Papyrus bindings.");
-        }
+        REL::Relocation<uintptr_t> hook{REL::ID(35551)};
+
+        log::trace("Hooks initialized.");
     }
 }
 
@@ -83,8 +61,7 @@ SKSEPluginLoad(const LoadInterface* skse) {
     log::info("{} {} is loading...", plugin->GetName(), version);
 
     Init(skse);
-    InitializeEventSink();
-    InitializePapyrus();
+    InitializeHooks();
 
     log::info("{} has finished loading.", plugin->GetName());
     return true;
