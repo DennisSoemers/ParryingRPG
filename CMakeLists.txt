@@ -26,6 +26,7 @@ configure_file(
         @ONLY)
 
 set(sources
+        src/OnMeleeHit.cpp
         src/Main.cpp
 
         ${CMAKE_CURRENT_BINARY_DIR}/version.rc)

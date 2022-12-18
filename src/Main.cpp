@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include "OnMeleeHit.h"
 
 using namespace SKSE;
 using namespace SKSE::log;
@@ -44,7 +45,7 @@ namespace {
     void InitializeHooks() {
         log::trace("Initializing hooks...");
 
-        REL::Relocation<uintptr_t> hook{REL::ID(35551)};
+        OnMeleeHit::OnMeleeHitHook::InstallHook();
 
         log::trace("Hooks initialized.");
     }
