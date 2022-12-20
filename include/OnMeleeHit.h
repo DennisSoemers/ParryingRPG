@@ -33,7 +33,10 @@ namespace OnMeleeHit {
     const RE::TESObjectWEAP* const GetAttackWeapon(RE::AIProcess* const aiProcess);
     bool GetWeaponPositions(const RE::Actor* const actor, RE::AIProcess* const aiProcess, const float reach, RE::NiPoint3& outFrom,
                             RE::NiPoint3& outTo);
-    bool IsParry(const RE::Actor* const hit_causer, const RE::Actor* const hit_target);
+    bool IsParry(const RE::Actor* const hit_causer, const RE::Actor* const hit_target,
+                 RE::AIProcess* const attackerAI, RE::AIProcess* const targetAI,
+                 const RE::TESObjectWEAP* attackerWeapon, const RE::TESObjectWEAP* targetWeapon);
+    bool IsParryBasicChecks(const RE::Actor* const hit_causer, const RE::Actor* const hit_target);
     bool IsAttacking(const RE::ATTACK_STATE_ENUM state_a);
     float Dist(const RE::NiPoint3& A, const RE::NiPoint3& B, const RE::NiPoint3& C, const RE::NiPoint3& D);
     RE::NiPoint3 Lerp(const RE::NiPoint3& A, const RE::NiPoint3& B, const float k);

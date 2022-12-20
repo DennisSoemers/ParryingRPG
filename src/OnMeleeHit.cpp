@@ -25,11 +25,39 @@ void OnMeleeHitHook::OnMeleeHit(RE::Actor* hit_causer, RE::Actor* hit_target, st
 
     // Code here is a mix of Fenix31415's, Maxsu's / doodlum's, and my own
     if (hit_causer && hit_target) {
-        if (OnMeleeHit::IsParry(hit_causer, hit_target)) {
-            // TODO do the parry
+        if (OnMeleeHit::IsParryBasicChecks(hit_causer, hit_target)) {
+            RE::AIProcess* const attackerAI = hit_causer->GetActorRuntimeData().currentProcess;
+            RE::AIProcess* const targetAI = hit_target->GetActorRuntimeData().currentProcess;
+            if (attackerAI && targetAI) {
+                auto attackerWeapon = GetAttackWeapon(attackerAI);
+                auto targetWeapon = GetAttackWeapon(targetAI);
 
-            // We'll want to skip the normal game's code for this hit
-            return;
+                if (attackerWeapon && targetWeapon) {
+                    if (OnMeleeHit::IsParry(hit_causer, hit_target, attackerAI, targetAI, attackerWeapon,
+                                            targetWeapon)) {
+                        // It's a parry!
+                        const auto nodeName = (attackerAI->high->attackData->IsLeftAttack()) ? "SHIELD"sv : "WEAPON"sv;
+
+                        SKSE::GetTaskInterface()->AddTask([hit_causer, attackerWeapon, nodeName]() {
+                            const auto impactManager = RE::BGSImpactManager::GetSingleton();
+                            if (impactManager) {
+                                if (attackerWeapon && attackerWeapon->impactDataSet) {
+                                    RE::NiPoint3 pickDirection = {0.0f, 0.0f, 1.0f};
+                                    impactManager->PlayImpactEffect(hit_causer, attackerWeapon->impactDataSet, nodeName,
+                                                                    pickDirection, 125.f, true, false)
+                                }
+                            }
+                        });
+
+                        hit_causer->NotifyAnimationGraph("recoilStop");
+                        hit_causer->NotifyAnimationGraph("AttackStop");
+                        hit_causer->NotifyAnimationGraph("recoilLargeStart");
+
+                        // We'll want to skip the normal game's code for this hit
+                        return;
+                    }
+                }
+            }
         }
     }
 
@@ -37,8 +65,7 @@ void OnMeleeHitHook::OnMeleeHit(RE::Actor* hit_causer, RE::Actor* hit_target, st
     _OnMeleeHit(hit_causer, hit_target, a_int1, a_bool, a_unkptr);
 }
 
-bool OnMeleeHit::IsParry(const RE::Actor* const hit_causer, const RE::Actor* const hit_target) {
-    // First some sanity checks
+bool OnMeleeHit::IsParryBasicChecks(const RE::Actor* const hit_causer, const RE::Actor* const hit_target) {
     if (!hit_causer->Is3DLoaded() || !hit_target->Is3DLoaded()) {
         return false;
     }
@@ -57,41 +84,36 @@ bool OnMeleeHit::IsParry(const RE::Actor* const hit_causer, const RE::Actor* con
         return false;
     }
 
-    RE::AIProcess* const attackerAI = hit_causer->GetActorRuntimeData().currentProcess;
-    RE::AIProcess* const targetAI = hit_target->GetActorRuntimeData().currentProcess;
-    if (!attackerAI || !targetAI) {
-        return false;
-    }
+    return true;
+}
 
-    // Now looking at the weapons used
-    auto attackerWeapon = GetAttackWeapon(attackerAI);
-    auto targetWeapon = GetAttackWeapon(targetAI);
+bool OnMeleeHit::IsParry(const RE::Actor* const hit_causer, const RE::Actor* const hit_target,
+                         RE::AIProcess* const attackerAI, RE::AIProcess* const targetAI,
+                         const RE::TESObjectWEAP* attackerWeapon, const RE::TESObjectWEAP* targetWeapon) {
+    if (attackerWeapon->IsMelee() && targetWeapon->IsMelee() && !attackerWeapon->IsHandToHandMelee() &&
+        !targetWeapon->IsHandToHandMelee()) {
+        // Make sure that actors are facing each other
+        auto angle = abs(hit_causer->GetHeading(true) - hit_target->GetHeading(true));
+        if (angle > M_PI) {
+            angle = 2.0 * M_PI - angle;
+        }
 
-    if (attackerWeapon && targetWeapon) {
-        if (attackerWeapon->IsMelee() && targetWeapon->IsMelee() && !attackerWeapon->IsHandToHandMelee() &&
-            !targetWeapon->IsHandToHandMelee()) {
-            // Make sure that actors are facing each other
-            auto angle = abs(hit_causer->GetHeading(true) - hit_target->GetHeading(true));
-            if (angle > M_PI) {
-                angle = 2.0 * M_PI - angle;
+        if (angle > M_PI * 0.75) {
+            // Make sure that the weapons are close together
+            RE::NiPoint3 attacker_from, attacker_to, victim_from, victim_to;
+
+            if (!GetWeaponPositions(hit_causer, attackerAI, 125.f /*attackerWeapon->GetReach()*/, attacker_from,
+                                    attacker_to)) {
+                return false;
             }
 
-            if (angle > M_PI * 0.75) {
-                // Make sure that the weapons are close together
-                RE::NiPoint3 attacker_from, attacker_to, victim_from, victim_to;
-
-                if (!GetWeaponPositions(hit_causer, attackerAI, attackerWeapon->GetReach(), attacker_from,
-                                        attacker_to)) {
-                    return false;
-                }
-
-                if (!GetWeaponPositions(hit_target, targetAI, targetWeapon->GetReach(), victim_from, victim_to)) {
-                    return false;
-                }
-
-                const float d = Dist(attacker_from, attacker_to, victim_from, victim_to);
-                return d <= 120.0f;
+            if (!GetWeaponPositions(hit_target, targetAI, 125.f /*targetWeapon->GetReach()*/, victim_from,
+                                    victim_to)) {
+                return false;
             }
+
+            const float d = Dist(attacker_from, attacker_to, victim_from, victim_to);
+            return d <= 120.0f;
         }
     }
 
