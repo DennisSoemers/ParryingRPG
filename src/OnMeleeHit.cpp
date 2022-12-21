@@ -39,14 +39,8 @@ void OnMeleeHitHook::OnMeleeHit(RE::Actor* hit_causer, RE::Actor* hit_target, st
                         const auto nodeName = (attackerAI->high->attackData->IsLeftAttack()) ? "SHIELD"sv : "WEAPON"sv;
 
                         SKSE::GetTaskInterface()->AddTask([hit_causer, attackerWeapon, nodeName]() {
-                            const auto impactManager = RE::BGSImpactManager::GetSingleton();
-                            if (impactManager) {
-                                if (attackerWeapon && attackerWeapon->impactDataSet) {
-                                    RE::NiPoint3 pickDirection = {0.0f, 0.0f, 1.0f};
-                                    impactManager->PlayImpactEffect(hit_causer, attackerWeapon->impactDataSet, nodeName,
-                                                                    pickDirection, 125.f, true, false)
-                                }
-                            }
+                            play_sound(hit_causer, 0x0003C73C);
+                            play_impact_1(hit_causer, nodeName);
                         });
 
                         hit_causer->NotifyAnimationGraph("recoilStop");
@@ -87,7 +81,7 @@ bool OnMeleeHit::IsParryBasicChecks(const RE::Actor* const hit_causer, const RE:
     return true;
 }
 
-bool OnMeleeHit::IsParry(const RE::Actor* const hit_causer, const RE::Actor* const hit_target,
+bool OnMeleeHit::IsParry(RE::Actor* hit_causer, RE::Actor* hit_target,
                          RE::AIProcess* const attackerAI, RE::AIProcess* const targetAI,
                          const RE::TESObjectWEAP* attackerWeapon, const RE::TESObjectWEAP* targetWeapon) {
     if (attackerWeapon->IsMelee() && targetWeapon->IsMelee() && !attackerWeapon->IsHandToHandMelee() &&
@@ -102,12 +96,12 @@ bool OnMeleeHit::IsParry(const RE::Actor* const hit_causer, const RE::Actor* con
             // Make sure that the weapons are close together
             RE::NiPoint3 attacker_from, attacker_to, victim_from, victim_to;
 
-            if (!GetWeaponPositions(hit_causer, attackerAI, 125.f /*attackerWeapon->GetReach()*/, attacker_from,
+            if (!GetWeaponPositions(hit_causer, attackerAI, attacker_from,
                                     attacker_to)) {
                 return false;
             }
 
-            if (!GetWeaponPositions(hit_target, targetAI, 125.f /*targetWeapon->GetReach()*/, victim_from,
+            if (!GetWeaponPositions(hit_target, targetAI, victim_from,
                                     victim_to)) {
                 return false;
             }
@@ -135,7 +129,7 @@ const RE::TESObjectWEAP* const OnMeleeHit::GetAttackWeapon(RE::AIProcess* const 
     return nullptr;
 }
 
-bool OnMeleeHit::GetWeaponPositions(const RE::Actor* const actor, RE::AIProcess* const aiProcess, const float reach,
+bool OnMeleeHit::GetWeaponPositions(RE::Actor* actor, RE::AIProcess* const aiProcess,
                                     RE::NiPoint3& outFrom, RE::NiPoint3& outTo) {
     const auto nodeName = (aiProcess->high->attackData->IsLeftAttack()) ? "SHIELD"sv : "WEAPON"sv;
     const auto root = netimmerse_cast<RE::BSFadeNode*>(actor->Get3D());
@@ -144,6 +138,8 @@ bool OnMeleeHit::GetWeaponPositions(const RE::Actor* const actor, RE::AIProcess*
     const auto bone = netimmerse_cast<RE::NiNode*>(root->GetObjectByName(nodeName));
     if (!bone) 
         return false;
+
+    const float reach = GetReach(actor) * 0.75f;
     outFrom = bone->world.translate;
     const auto weaponDirection =
         RE::NiPoint3{bone->world.rotate.entry[0][1], bone->world.rotate.entry[1][1], bone->world.rotate.entry[2][1]};
@@ -191,4 +187,51 @@ RE::NiPoint3 OnMeleeHit::constrainToSegment(const RE::NiPoint3& position, const 
 
 float OnMeleeHit::dist(const RE::NiPoint3& A, const RE::NiPoint3& B, const RE::NiPoint3& C) {
     return constrainToSegment(C, A, B).GetDistance(C);
+}
+
+// From: https://github.com/fenix31415/UselessFenixUtils
+void OnMeleeHit::play_sound(RE::TESObjectREFR* object, int formid) {
+    RE::BSSoundHandle handle;
+    handle.soundID = static_cast<uint32_t>(-1);
+    handle.assumeSuccess = false;
+    *(uint32_t*)&handle.state = 0;
+
+    auto manager = _generic_foo_<66391, void*()>::eval();
+    _generic_foo_<66401, int(void*, RE::BSSoundHandle*, int, int)>::eval(manager, &handle, formid, 16);
+    if (_generic_foo_<66370, bool(RE::BSSoundHandle*, float, float, float)>::eval(
+            &handle, object->data.location.x, object->data.location.y, object->data.location.z)) {
+        _generic_foo_<66375, void(RE::BSSoundHandle*, RE::NiAVObject*)>::eval(&handle, object->Get3D());
+        _generic_foo_<66355, bool(RE::BSSoundHandle*)>::eval(&handle);
+    }
+}
+
+// From: https://github.com/fenix31415/UselessFenixUtils
+float OnMeleeHit::GetReach(RE::Actor* a) { return _generic_foo_<37588, decltype(GetReach)>::eval(a); }
+
+bool OnMeleeHit::play_impact_1(RE::Actor* actor, const RE::BSFixedString& nodeName) {
+    auto root = netimmerse_cast<RE::BSFadeNode*>(actor->Get3D());
+    if (!root) return false;
+    auto bone = netimmerse_cast<RE::NiNode*>(root->GetObjectByName(nodeName));
+    if (!bone) return false;
+
+    float reach = GetReach(actor) * 0.75f * 0.5f;
+    auto weaponDirection =
+        RE::NiPoint3{bone->world.rotate.entry[0][1], bone->world.rotate.entry[1][1], bone->world.rotate.entry[2][1]};
+    RE::NiPoint3 to = bone->world.translate + weaponDirection * reach;
+    RE::NiPoint3 P_V = {0.0f, 0.0f, 0.0f};
+
+    return play_impact_2(actor, RE::TESForm::LookupByID<RE::BGSImpactData>(0x0004BB52), &P_V, &to, bone);
+}
+
+// From: https://github.com/fenix31415/UselessFenixUtils
+bool OnMeleeHit::play_impact_2(RE::TESObjectREFR* a, RE::BGSImpactData* impact, RE::NiPoint3* P_V, RE::NiPoint3* P_from,
+                 RE::NiNode* bone) {
+    return play_impact_3(a->GetParentCell(), 1.0f, impact->GetModel(), P_V, P_from, 1.0f, 7, bone);
+}
+
+// From: https://github.com/fenix31415/UselessFenixUtils
+bool OnMeleeHit::play_impact_3(RE::TESObjectCELL* cell, float one, const char* model, RE::NiPoint3* P_V,
+                             RE::NiPoint3* P_from,
+                 float a6, uint32_t _7, RE::NiNode* a8) {
+    return _generic_foo_<29218, decltype(play_impact_3)>::eval(cell, one, model, P_V, P_from, a6, _7, a8);
 }
