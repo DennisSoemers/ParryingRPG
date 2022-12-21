@@ -4,8 +4,8 @@
 ![GitHub](https://img.shields.io/github/license/DennisSoemers/ParryingNG)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/DennisSoemers/ParryingNG)
 
-A CommonLibSSE NG-based reimplementation of [fenix31415's Parrying mod](https://www.nexusmods.com/skyrimspecialedition/mods/65133) for Skyrim, 
-including additional features. 
+A reimplementation of fenix31415's [fenix31415's Parrying mod](https://www.nexusmods.com/skyrimspecialedition/mods/65133) for Skyrim, 
+with some additional features. 
 
 ## Download
 

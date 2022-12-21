@@ -5,9 +5,9 @@ message("Using toolchain file ${CMAKE_TOOLCHAIN_FILE}.")
 ## Define project
 ########################################################################################################################
 project(
-        ParryingNG
+        ParryingRPG
         VERSION 1.0.0
-        DESCRIPTION "A CommonLibSSE NG-based reimplementation of fenix31415's Parrying mod for Skyrim, including additional features."
+        DESCRIPTION "A reimplementation of fenix31415's Parrying mod for Skyrim, with some additional features."
         LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
