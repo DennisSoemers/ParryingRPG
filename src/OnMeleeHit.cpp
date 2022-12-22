@@ -64,9 +64,9 @@ bool OnMeleeHit::IsParryBasicChecks(const RE::Actor* const hit_causer, const RE:
         return false;
     }
 
-    if (hit_causer->formType != RE::FormType::ActorCharacter || hit_target->formType != RE::FormType::ActorCharacter) {
-        return false;
-    }
+    //if (hit_causer->formType != RE::FormType::ActorCharacter || hit_target->formType != RE::FormType::ActorCharacter) {
+    //   return false;
+    //}
 
     if (hit_causer->IsDead() || hit_target->IsDead()) {
         return false;

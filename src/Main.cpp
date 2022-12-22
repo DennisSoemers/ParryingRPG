@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include "OnMeleeHit.h"
+#include "Settings.h"
 
 using namespace SKSE;
 using namespace SKSE::log;
@@ -62,6 +63,13 @@ SKSEPluginLoad(const LoadInterface* skse) {
     log::info("{} {} is loading...", plugin->GetName(), version);
 
     Init(skse);
+
+    try {
+        Settings::GetSingleton()->Load();
+    } catch (...) {
+        logger::error("Exception caught when loading settings! Default settings will be used");
+    }
+
     InitializeHooks();
 
     log::info("{} has finished loading.", plugin->GetName());
