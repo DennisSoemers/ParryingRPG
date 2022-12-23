@@ -20,8 +20,7 @@ namespace {
 
         std::shared_ptr<spdlog::logger> log;
         if (IsDebuggerPresent()) {
-            log = std::make_shared<spdlog::logger>(
-                "Global", std::make_shared<spdlog::sinks::msvc_sink_mt>());
+            log = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::msvc_sink_mt>());
         } else {
             log = std::make_shared<spdlog::logger>(
                 "Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true));
@@ -40,9 +39,9 @@ namespace {
         spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%t] [%s:%#] %v");
     }
 
-   /**
-    * Initialize the hooks.
-    */
+    /**
+     * Initialize the hooks.
+     */
     void InitializeHooks() {
         log::trace("Initializing hooks...");
 
@@ -50,7 +49,26 @@ namespace {
 
         log::trace("Hooks initialized.");
     }
-}
+
+    void MessageHandler(SKSE::MessagingInterface::Message* a_msg) {
+        switch (a_msg->type) {
+            case SKSE::MessagingInterface::kDataLoaded:
+                auto parryingHandle = GetModuleHandleA("Parrying.dll");
+                if (parryingHandle) {
+                    logger::error("Warning! ParryingRPG has detected that Parrying.dll is also loaded!");
+                    RE::DebugMessageBox("Warning! ParryingRPG has detected that Parrying.dll is also loaded!");
+                }
+
+                auto maxsuWeaponParryHandle = GetModuleHandleA("MaxsuWeaponParry.dll");
+                if (maxsuWeaponParryHandle) {
+                    logger::error("Warning! ParryingRPG has detected that MaxsuWeaponParry.dll is also loaded!");
+                    RE::DebugMessageBox("Warning! ParryingRPG has detected that MaxsuWeaponParry.dll is also loaded!");
+                }
+
+                break;
+        }
+    }
+}  // namespace
 
 /**
  * This is the main callback for initializing the SKSE plugin, called just before Skyrim runs its main function.
@@ -83,6 +101,7 @@ SKSEPluginLoad(const LoadInterface* skse) {
     }
 
     InitializeHooks();
+    SKSE::GetMessagingInterface()->RegisterListener(MessageHandler);
 
     log::info("{} has finished loading.", plugin->GetName());
     return true;
