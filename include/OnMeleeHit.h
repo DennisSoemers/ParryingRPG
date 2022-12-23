@@ -1,6 +1,7 @@
 #pragma once
 
 #include <RE/Skyrim.h>
+#include "Settings.h"
 
 namespace OnMeleeHit {
 #pragma warning(push)
@@ -30,6 +31,11 @@ namespace OnMeleeHit {
     };
 
     // Below here some helper functions
+    bool AttackerBeatsParry(RE::Actor* attacker, RE::Actor* target, const RE::TESObjectWEAP* attackerWeapon,
+                            const RE::TESObjectWEAP* targetWeapon, RE::AIProcess* const attackerAI,
+                            RE::AIProcess* const targetAI);
+    double GetScore(RE::Actor* actor, const RE::TESObjectWEAP* weapon,
+                    RE::AIProcess* const actorAI, const Settings::Scores& scoreSettings);
     const RE::TESObjectWEAP* const GetAttackWeapon(RE::AIProcess* const aiProcess);
     bool GetWeaponPositions(RE::Actor* actor, RE::AIProcess* const aiProcess, RE::NiPoint3& outFrom,
                             RE::NiPoint3& outTo);

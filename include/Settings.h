@@ -65,6 +65,7 @@ public:
         double altmerScore{-15.0};
         double argonianScore{0.0};
         double bosmerScore{-10.0};
+        double bretonScore{-10.0};
         double dunmerScore{-5.0};
         double imperialScore{0.0};
         double khajiitScore{5.0};

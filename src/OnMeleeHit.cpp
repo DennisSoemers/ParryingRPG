@@ -35,20 +35,23 @@ void OnMeleeHitHook::OnMeleeHit(RE::Actor* hit_causer, RE::Actor* hit_target, st
                 if (attackerWeapon && targetWeapon) {
                     if (OnMeleeHit::IsParry(hit_causer, hit_target, attackerAI, targetAI, attackerWeapon,
                                             targetWeapon)) {
-                        // It's a parry!
-                        const auto nodeName = (attackerAI->high->attackData->IsLeftAttack()) ? "SHIELD"sv : "WEAPON"sv;
+                        if (!AttackerBeatsParry(hit_causer, hit_target, attackerWeapon, targetWeapon, attackerAI, targetAI)) {
+                            // It's a parry!
+                            const auto nodeName =
+                                (attackerAI->high->attackData->IsLeftAttack()) ? "SHIELD"sv : "WEAPON"sv;
 
-                        SKSE::GetTaskInterface()->AddTask([hit_causer, attackerWeapon, nodeName]() {
-                            play_sound(hit_causer, 0x0003C73C);
-                            play_impact_1(hit_causer, nodeName);
-                        });
+                            SKSE::GetTaskInterface()->AddTask([hit_causer, attackerWeapon, nodeName]() {
+                                play_sound(hit_causer, 0x0003C73C);
+                                play_impact_1(hit_causer, nodeName);
+                            });
 
-                        hit_causer->NotifyAnimationGraph("recoilStop");
-                        hit_causer->NotifyAnimationGraph("AttackStop");
-                        hit_causer->NotifyAnimationGraph("recoilLargeStart");
+                            hit_causer->NotifyAnimationGraph("recoilStop");
+                            hit_causer->NotifyAnimationGraph("AttackStop");
+                            hit_causer->NotifyAnimationGraph("recoilLargeStart");
 
-                        // We'll want to skip the normal game's code for this hit
-                        return;
+                            // We'll want to skip the normal game's code for this hit
+                            return;
+                        }
                     }
                 }
             }
@@ -57,6 +60,103 @@ void OnMeleeHitHook::OnMeleeHit(RE::Actor* hit_causer, RE::Actor* hit_target, st
 
     // Call the normal game's code
     _OnMeleeHit(hit_causer, hit_target, a_int1, a_bool, a_unkptr);
+}
+
+bool OnMeleeHit::AttackerBeatsParry(RE::Actor* attacker, RE::Actor* target, const RE::TESObjectWEAP* attackerWeapon,
+                                    const RE::TESObjectWEAP* targetWeapon, RE::AIProcess* const attackerAI,
+                                    RE::AIProcess* const targetAI) {
+
+    if (!Settings::GetSingleton()->core.useScoreSystem) {
+        // The score-based system has been disabled in INI, so attackers can never overpower parries
+        return false;
+    }
+
+    const double attackerScore = GetScore(attacker, attackerWeapon, attackerAI, Settings::GetSingleton()->scores);
+    const double targetScore = GetScore(target, targetWeapon, targetAI, Settings::GetSingleton()->scores);
+
+    return ((attackerScore - targetScore) >= Settings::GetSingleton()->scores.scoreDiffThreshold);
+}
+
+double OnMeleeHit::GetScore(RE::Actor* actor, const RE::TESObjectWEAP* weapon,
+                            RE::AIProcess* const actorAI, const Settings::Scores& scoreSettings) {
+    double score = 0.0;
+
+    const auto weaponType = weapon->GetWeaponType();
+
+    switch (weaponType) { 
+        case RE::WEAPON_TYPE::kOneHandSword:
+            score += scoreSettings.oneHandSwordScore;
+            break;
+        case RE::WEAPON_TYPE::kOneHandDagger:
+            score += scoreSettings.oneHandDaggerScore;
+            break;
+        case RE::WEAPON_TYPE::kOneHandAxe:
+            score += scoreSettings.oneHandAxeScore;
+            break;
+        case RE::WEAPON_TYPE::kOneHandMace:
+            score += scoreSettings.oneHandMaceScore;
+            break;
+        case RE::WEAPON_TYPE::kTwoHandAxe:
+            score += scoreSettings.twoHandAxeScore;
+            break;
+        case RE::WEAPON_TYPE::kTwoHandSword:
+            score += scoreSettings.twoHandSwordScore;
+            break;
+        default:
+            // Do nothing
+            break;
+    }
+
+    const auto actorValue = weapon->weaponData.skill.get();
+    switch (actorValue) {
+        case RE::ActorValue::kOneHanded:
+            score += (scoreSettings.weaponSkillWeight *
+                      actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kOneHanded));
+            break;
+        case RE::ActorValue::kTwoHanded:
+            score += (scoreSettings.weaponSkillWeight *
+                      actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kTwoHanded));
+            break;
+        default:
+            // Do nothing
+            break;
+    }
+
+    const auto race = actor->GetRace();
+    const auto raceFormID = race->formID;
+
+    if (raceFormID == 0x13743 || raceFormID == 0x88840) {
+        score += scoreSettings.altmerScore;
+    } else if (raceFormID == 0x13740 || raceFormID == 0x8883A) {
+        score += scoreSettings.argonianScore;
+    } else if (raceFormID == 0x13749 || raceFormID == 0x88884) {
+        score += scoreSettings.bosmerScore;
+    } else if (raceFormID == 0x13741 || raceFormID == 0x8883C) {
+        score += scoreSettings.bretonScore;
+    } else if (raceFormID == 0x13742 || raceFormID == 0x8883D) {
+        score += scoreSettings.dunmerScore;
+    } else if (raceFormID == 0x13744 || raceFormID == 0x88844) {
+        score += scoreSettings.imperialScore;
+    } else if (raceFormID == 0x13745 || raceFormID == 0x88845) {
+        score += scoreSettings.khajiitScore;
+    } else if (raceFormID == 0x13746 || raceFormID == 0x88794) {
+        score += scoreSettings.nordScore;
+    } else if (raceFormID == 0x13747 || raceFormID == 0xA82B9) {
+        score += scoreSettings.orcScore;
+    } else if (raceFormID == 0x13748 || raceFormID == 0x88846) {
+        score += scoreSettings.redguardScore;
+    }
+
+    const auto actorBase = actor->GetActorBase();
+    if (actorBase && actorBase->IsFemale()) {
+        score += scoreSettings.femaleScore;
+    }
+
+    if (actorAI->high->attackData->data.flags.any(RE::AttackData::AttackFlag::kPowerAttack)) {
+        score += scoreSettings.powerAttackScore;
+    }
+
+    return score;
 }
 
 bool OnMeleeHit::IsParryBasicChecks(const RE::Actor* const hit_causer, const RE::Actor* const hit_target) {
