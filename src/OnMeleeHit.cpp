@@ -335,3 +335,58 @@ bool OnMeleeHit::play_impact_3(RE::TESObjectCELL* cell, float one, const char* m
                  float a6, uint32_t _7, RE::NiNode* a8) {
     return _generic_foo_<29218, decltype(play_impact_3)>::eval(cell, one, model, P_V, P_from, a6, _7, a8);
 }
+
+PRECISION_API::WeaponCollisionCallbackReturn OnMeleeHit::PrecisionWeaponsCallback(
+    const PRECISION_API::PrecisionHitData& a_precisionHitData) {
+
+    auto hit_causer = a_precisionHitData.attacker;
+    auto hit_target = a_precisionHitData.target == nullptr ? nullptr : a_precisionHitData.target->As<RE::Actor>();
+
+    if (hit_causer && hit_target) {
+        if (OnMeleeHit::IsParryBasicChecks(hit_causer, hit_target)) {
+            RE::AIProcess* const attackerAI = hit_causer->GetActorRuntimeData().currentProcess;
+            RE::AIProcess* const targetAI = hit_target->GetActorRuntimeData().currentProcess;
+            if (attackerAI && targetAI) {
+                auto attackerWeapon = GetAttackWeapon(attackerAI);
+                auto targetWeapon = GetAttackWeapon(targetAI);
+
+                if (attackerWeapon && targetWeapon) {
+                    if (!AttackerBeatsParry(hit_causer, hit_target, attackerWeapon, targetWeapon, attackerAI,
+                                            targetAI)) {
+                        // It's a parry!
+                        const auto nodeName = (attackerAI->high->attackData->IsLeftAttack()) ? "SHIELD"sv : "WEAPON"sv;
+                        const RE::NiPoint3 hitPos = a_precisionHitData.hitPos;
+
+                        SKSE::GetTaskInterface()->AddTask([hit_causer, attackerWeapon, nodeName, hitPos]() {
+                            RE::NiPoint3 hit_pos(hitPos);
+                            play_sound(hit_causer, 0x0003C73C);
+                            play_impact_precision(hit_causer, nodeName, hit_pos);
+                        });
+
+                        hit_causer->NotifyAnimationGraph("recoilStop");
+                        hit_causer->NotifyAnimationGraph("AttackStop");
+                        hit_causer->NotifyAnimationGraph("recoilLargeStart");
+
+                        PRECISION_API::WeaponCollisionCallbackReturn ret;
+                        return ret;
+                    }
+                }
+            }
+        }
+    }
+
+    PRECISION_API::WeaponCollisionCallbackReturn ret;
+    ret.bIgnoreHit = false;
+    return ret;
+}
+
+bool OnMeleeHit::play_impact_precision(RE::Actor* actor, const RE::BSFixedString& nodeName, RE::NiPoint3& hitPos) {
+    auto root = netimmerse_cast<RE::BSFadeNode*>(actor->Get3D());
+    if (!root) return false;
+    auto bone = netimmerse_cast<RE::NiNode*>(root->GetObjectByName(nodeName));
+    if (!bone) return false;
+
+    RE::NiPoint3 P_V = {0.0f, 0.0f, 0.0f};
+
+    return play_impact_2(actor, RE::TESForm::LookupByID<RE::BGSImpactData>(0x0004BB52), &P_V, &hitPos, bone);
+}

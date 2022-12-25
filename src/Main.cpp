@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include "OnMeleeHit.h"
+#include "PrecisionAPI.h"
 #include "Settings.h"
 
 using namespace SKSE;
@@ -52,7 +53,16 @@ namespace {
 
     void MessageHandler(SKSE::MessagingInterface::Message* a_msg) {
         switch (a_msg->type) {
-            case SKSE::MessagingInterface::kDataLoaded:
+            case SKSE::MessagingInterface::kPostPostLoad: {
+                const auto precisionAPI =
+                    reinterpret_cast<PRECISION_API::IVPrecision4*>(PRECISION_API::RequestPluginAPI());
+                if (precisionAPI) {
+                    precisionAPI->AddWeaponWeaponCollisionCallback(SKSE::GetPluginHandle(), OnMeleeHit::PrecisionWeaponsCallback);
+                    logger::info("Enabled compatibility with Precision");
+                }
+            }
+                break;
+            case SKSE::MessagingInterface::kDataLoaded: {
                 auto parryingHandle = GetModuleHandleA("Parrying.dll");
                 if (parryingHandle) {
                     logger::error("Warning! ParryingRPG has detected that Parrying.dll is also loaded!");
@@ -64,7 +74,7 @@ namespace {
                     logger::error("Warning! ParryingRPG has detected that MaxsuWeaponParry.dll is also loaded!");
                     RE::DebugMessageBox("Warning! ParryingRPG has detected that MaxsuWeaponParry.dll is also loaded!");
                 }
-
+            }
                 break;
         }
     }

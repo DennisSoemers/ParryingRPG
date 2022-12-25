@@ -1,6 +1,7 @@
 #pragma once
 
 #include <RE/Skyrim.h>
+#include "PrecisionAPI.h"
 #include "Settings.h"
 
 namespace OnMeleeHit {
@@ -70,6 +71,13 @@ namespace OnMeleeHit {
             return func(std::forward<Args>(args)...);
         }
     };
+
+    // For Precision compatibility:
+    PRECISION_API::WeaponCollisionCallbackReturn PrecisionWeaponsCallback(
+        const PRECISION_API::PrecisionHitData& a_precisionHitData);
+
+    // A modified version of fenix31415's play_impact code which uses Precision's hit location
+    bool play_impact_precision(RE::Actor* actor, const RE::BSFixedString& nodeName, RE::NiPoint3& hitPos);
 
 #pragma warning(pop)
 }  // namespace OnMeleeHit
