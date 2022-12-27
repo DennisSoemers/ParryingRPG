@@ -290,18 +290,20 @@ float OnMeleeHit::dist(const RE::NiPoint3& A, const RE::NiPoint3& B, const RE::N
 }
 
 // From: https://github.com/fenix31415/UselessFenixUtils
-void OnMeleeHit::play_sound(RE::TESObjectREFR* object, int formid) {
+void OnMeleeHit::play_sound(RE::TESObjectREFR* object, RE::FormID formid) {
     RE::BSSoundHandle handle;
     handle.soundID = static_cast<uint32_t>(-1);
     handle.assumeSuccess = false;
     *(uint32_t*)&handle.state = 0;
 
-    auto manager = _generic_foo_<66391, void*()>::eval();
-    _generic_foo_<66401, int(void*, RE::BSSoundHandle*, int, int)>::eval(manager, &handle, formid, 16);
-    if (_generic_foo_<66370, bool(RE::BSSoundHandle*, float, float, float)>::eval(
-            &handle, object->data.location.x, object->data.location.y, object->data.location.z)) {
-        _generic_foo_<66375, void(RE::BSSoundHandle*, RE::NiAVObject*)>::eval(&handle, object->Get3D());
-        _generic_foo_<66355, bool(RE::BSSoundHandle*)>::eval(&handle);
+    auto manager = RE::BSAudioManager::GetSingleton();
+    if (manager) {
+        soundHelper_a(manager, &handle, formid, 16);
+        if (set_sound_position(&handle, object->data.location.x, object->data.location.y, object->data.location.z)) {
+            handle.SetVolume(1.f);
+            soundHelper_b(&handle, object->Get3D());
+            soundHelper_c(&handle);
+        }
     }
 }
 
