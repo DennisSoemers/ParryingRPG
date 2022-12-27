@@ -328,11 +328,9 @@ bool OnMeleeHit::play_impact_2(RE::TESObjectREFR* a, RE::BGSImpactData* impact, 
     return play_impact_3(a->GetParentCell(), 1.0f, impact->GetModel(), P_V, P_from, 1.0f, 7, bone);
 }
 
-// From: https://github.com/fenix31415/UselessFenixUtils
-bool OnMeleeHit::play_impact_3(RE::TESObjectCELL* cell, float one, const char* model, RE::NiPoint3* P_V,
-                             RE::NiPoint3* P_from,
-                 float a6, uint32_t _7, RE::NiNode* a8) {
-    return _generic_foo_<29218, decltype(play_impact_3)>::eval(cell, one, model, P_V, P_from, a6, _7, a8);
+bool OnMeleeHit::play_impact_3(RE::TESObjectCELL* cell, float a_lifetime, const char* model, RE::NiPoint3* a_rotation,
+                               RE::NiPoint3* a_position, float a_scale, uint32_t a_flags, RE::NiNode* a_target) {
+    return RE::BSTempEffectParticle::Spawn(cell, a_lifetime, model, *a_rotation, *a_position, a_scale, a_flags, a_target);
 }
 
 PRECISION_API::WeaponCollisionCallbackReturn OnMeleeHit::PrecisionWeaponsCallback(

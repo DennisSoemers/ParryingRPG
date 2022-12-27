@@ -54,8 +54,8 @@ namespace OnMeleeHit {
     bool play_impact_1(RE::Actor* actor, const RE::BSFixedString& nodeName);
     bool play_impact_2(RE::TESObjectREFR* a, RE::BGSImpactData* impact, RE::NiPoint3* P_V, RE::NiPoint3* P_from,
                      RE::NiNode* bone);
-    bool play_impact_3(RE::TESObjectCELL* cell, float one, const char* model, RE::NiPoint3* P_V, RE::NiPoint3* P_from,
-                       float a6, uint32_t _7, RE::NiNode* a8);
+    bool play_impact_3(RE::TESObjectCELL* cell, float a_lifetime, const char* model, RE::NiPoint3* a_rotation,
+                       RE::NiPoint3* a_position, float a_scale, uint32_t a_flags, RE::NiNode* a_target);
 
     // From: https://github.com/ersh1/Precision/blob/567978e940dc36dc2f68d704fc2ccec4a77a7f10/src/Offsets.h#L334
     typedef float (*tActor_GetReach)(RE::Actor* a_this);
