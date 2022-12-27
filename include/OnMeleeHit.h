@@ -92,20 +92,6 @@ namespace OnMeleeHit {
         return func(a1, x, y, z);
     }
 
-    // From: https://github.com/fenix31415/UselessFenixUtils
-    template <int id, typename x_Function>
-    class _generic_foo_;
-
-    template <int id, typename T, typename... Args>
-    class _generic_foo_<id, T(Args...)> {
-    public:
-        static T eval(Args... args) {
-            using func_t = T(Args...);
-            REL::Relocation<func_t> func{REL::ID(id)};
-            return func(std::forward<Args>(args)...);
-        }
-    };
-
     // For Precision compatibility:
     PRECISION_API::WeaponCollisionCallbackReturn PrecisionWeaponsCallback(
         const PRECISION_API::PrecisionHitData& a_precisionHitData);
