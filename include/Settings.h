@@ -59,8 +59,16 @@ public:
         double oneHandSwordScore{20.0};
         double oneHandAxeScore{25.0};
         double oneHandMaceScore{25.0};
+        double oneHandKatanaScore{30.0};
+        double oneHandRapierScore{15.0};
+        double oneHandClawsScore{10.0};
+        double oneHandWhipScore{-100.0};
         double twoHandSwordScore{40.0};
         double twoHandAxeScore{50.0};
+        double twoHandWarhammerScore{50.0};
+        double twoHandPikeScore{30.0};
+        double twoHandHalberdScore{45.0};
+        double twoHandQuarterstaffScore{50.0};
 
         double altmerScore{-15.0};
         double argonianScore{0.0};
@@ -76,6 +84,8 @@ public:
         double femaleScore{-10.0};
 
         double powerAttackScore{25.0};
+
+        double playerScore{0.0};
     } scores;
 
 private:
