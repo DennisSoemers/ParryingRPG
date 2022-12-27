@@ -239,7 +239,7 @@ bool OnMeleeHit::GetWeaponPositions(RE::Actor* actor, RE::AIProcess* const aiPro
     if (!bone) 
         return false;
 
-    const float reach = GetReach(actor) * 0.75f;
+    const float reach = Actor_GetReach(actor) * 0.75f;
     outFrom = bone->world.translate;
     const auto weaponDirection =
         RE::NiPoint3{bone->world.rotate.entry[0][1], bone->world.rotate.entry[1][1], bone->world.rotate.entry[2][1]};
@@ -305,16 +305,13 @@ void OnMeleeHit::play_sound(RE::TESObjectREFR* object, int formid) {
     }
 }
 
-// From: https://github.com/fenix31415/UselessFenixUtils
-float OnMeleeHit::GetReach(RE::Actor* a) { return _generic_foo_<37588, decltype(GetReach)>::eval(a); }
-
 bool OnMeleeHit::play_impact_1(RE::Actor* actor, const RE::BSFixedString& nodeName) {
     auto root = netimmerse_cast<RE::BSFadeNode*>(actor->Get3D());
     if (!root) return false;
     auto bone = netimmerse_cast<RE::NiNode*>(root->GetObjectByName(nodeName));
     if (!bone) return false;
 
-    float reach = GetReach(actor) * 0.75f * 0.5f;
+    float reach = Actor_GetReach(actor) * 0.75f * 0.5f;
     auto weaponDirection =
         RE::NiPoint3{bone->world.rotate.entry[0][1], bone->world.rotate.entry[1][1], bone->world.rotate.entry[2][1]};
     RE::NiPoint3 to = bone->world.translate + weaponDirection * reach;

@@ -51,12 +51,15 @@ namespace OnMeleeHit {
     RE::NiPoint3 constrainToSegment(const RE::NiPoint3& position, const RE::NiPoint3& a, const RE::NiPoint3& b);
     float dist(const RE::NiPoint3& A, const RE::NiPoint3& B, const RE::NiPoint3& C);
     void play_sound(RE::TESObjectREFR* object, int formid);
-    float GetReach(RE::Actor* a);
     bool play_impact_1(RE::Actor* actor, const RE::BSFixedString& nodeName);
     bool play_impact_2(RE::TESObjectREFR* a, RE::BGSImpactData* impact, RE::NiPoint3* P_V, RE::NiPoint3* P_from,
                      RE::NiNode* bone);
     bool play_impact_3(RE::TESObjectCELL* cell, float one, const char* model, RE::NiPoint3* P_V, RE::NiPoint3* P_from,
                        float a6, uint32_t _7, RE::NiNode* a8);
+
+    // From: https://github.com/ersh1/Precision/blob/567978e940dc36dc2f68d704fc2ccec4a77a7f10/src/Offsets.h#L334
+    typedef float (*tActor_GetReach)(RE::Actor* a_this);
+    static REL::Relocation<tActor_GetReach> Actor_GetReach{RELOCATION_ID(37588, 38538)};  // 623F10, 649520
 
     // From: https://github.com/fenix31415/UselessFenixUtils
     template <int id, typename x_Function>
