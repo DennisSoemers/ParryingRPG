@@ -43,10 +43,26 @@ void Settings::Scores::Load(CSimpleIniA& a_ini) {
                       ";Bonus score for attacks with one-handed axes.");
     detail::get_value(a_ini, oneHandMaceScore, section, "OneHandMaceScore",
                       ";Bonus score for attacks with one-handed maces.");
+    detail::get_value(a_ini, oneHandKatanaScore, section, "OneHandKatanaScore",
+                      ";Bonus score for attacks with katanas (from Animated Armoury).");
+    detail::get_value(a_ini, oneHandRapierScore, section, "OneHandRapierScore",
+                      ";Bonus score for attacks with rapiers (from Animated Armoury).");
+    detail::get_value(a_ini, oneHandClawsScore, section, "OneHandClawsScore",
+                      ";Bonus score for attacks with claws (from Animated Armoury).");
+    detail::get_value(a_ini, oneHandWhipScore, section, "OneHandWhipScore",
+                      ";Bonus score for attacks with whips (from Animated Armoury).");
     detail::get_value(a_ini, twoHandSwordScore, section, "TwoHandSwordScore",
                       ";Bonus score for attacks with two-handed swords.");
     detail::get_value(a_ini, twoHandAxeScore, section, "TwoHandAxeScore",
                       ";Bonus score for attacks with two-handed axes.");
+    detail::get_value(a_ini, twoHandWarhammerScore, section, "TwoHandWarhammerScore",
+                      ";Bonus score for attacks with two-handed warhammers.");
+    detail::get_value(a_ini, twoHandPikeScore, section, "TwoHandPikeScore",
+                      ";Bonus score for attacks with two-handed pikes (from Animated Armoury).");
+    detail::get_value(a_ini, twoHandHalberdScore, section, "TwoHandHalberdScore",
+                      ";Bonus score for attacks with two-handed halberds (from Animated Armoury).");
+    detail::get_value(a_ini, twoHandQuarterstaffScore, section, "TwoHandQuarterstaffScore",
+                      ";Bonus score for attacks with two-handed quarterstaffs (from Animated Armoury).");
 
     detail::get_value(a_ini, altmerScore, section, "AltmerScore",
                       ";Bonus score for Altmer.");
@@ -74,4 +90,6 @@ void Settings::Scores::Load(CSimpleIniA& a_ini) {
 
     detail::get_value(a_ini, powerAttackScore, section, "PowerAttackScore",
                       ";Bonus score for power attacks.");
+
+    detail::get_value(a_ini, playerScore, section, "PlayerScore", ";Bonus score for the Player.");
 }

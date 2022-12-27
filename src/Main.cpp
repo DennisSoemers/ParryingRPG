@@ -99,11 +99,6 @@ SKSEPluginLoad(const LoadInterface* skse) {
         return false;
     }
 
-    if (runtimeVersion > REL::Version{1, 6, 353, 0}) {
-        logger::error("Parrying RPG is not compatible with runtime versions above 1.6.353!");
-        return false;
-    }
-
     try {
         Settings::GetSingleton()->Load();
     } catch (...) {

@@ -81,30 +81,37 @@ double OnMeleeHit::GetScore(RE::Actor* actor, const RE::TESObjectWEAP* weapon,
                             RE::AIProcess* const actorAI, const Settings::Scores& scoreSettings) {
     double score = 0.0;
 
-    const auto weaponType = weapon->GetWeaponType();
-
-    switch (weaponType) { 
-        case RE::WEAPON_TYPE::kOneHandSword:
-            score += scoreSettings.oneHandSwordScore;
-            break;
-        case RE::WEAPON_TYPE::kOneHandDagger:
-            score += scoreSettings.oneHandDaggerScore;
-            break;
-        case RE::WEAPON_TYPE::kOneHandAxe:
-            score += scoreSettings.oneHandAxeScore;
-            break;
-        case RE::WEAPON_TYPE::kOneHandMace:
-            score += scoreSettings.oneHandMaceScore;
-            break;
-        case RE::WEAPON_TYPE::kTwoHandAxe:
-            score += scoreSettings.twoHandAxeScore;
-            break;
-        case RE::WEAPON_TYPE::kTwoHandSword:
-            score += scoreSettings.twoHandSwordScore;
-            break;
-        default:
-            // Do nothing
-            break;
+    // Need to check for Animated Armoury keywords first, because its weapons
+    // ALSO have some of the vanilla weapon type keywords (but we want the AA
+    // ones to take precedence).
+    if (weapon->HasKeywordString("WeapTypeQtrStaff")) {
+        score += scoreSettings.twoHandQuarterstaffScore;
+    } else if (weapon->HasKeywordString("WeapTypeHalberd")) {
+        score += scoreSettings.twoHandHalberdScore;
+    } else if (weapon->HasKeywordString("WeapTypePike")) {
+        score += scoreSettings.twoHandPikeScore;
+    } else if (weapon->HasKeywordString("WeapTypeKatana")) {
+        score += scoreSettings.oneHandKatanaScore;
+    } else if (weapon->HasKeywordString("WeapTypeRapier")) {
+        score += scoreSettings.oneHandRapierScore;
+    } else if (weapon->HasKeywordString("WeapTypeClaw")) {
+        score += scoreSettings.oneHandClawsScore;
+    } else if (weapon->HasKeywordString("WeapTypeWhip")) {
+        score += scoreSettings.oneHandWhipScore;
+    } else if (weapon->HasKeywordString("WeapTypeWarhammer")) {
+        score += scoreSettings.twoHandWarhammerScore;
+    } else if (weapon->HasKeywordString("WeapTypeBattleaxe")) {
+        score += scoreSettings.twoHandAxeScore;
+    } else if (weapon->HasKeywordString("WeapTypeGreatsword")) {
+        score += scoreSettings.twoHandSwordScore;
+    } else if (weapon->HasKeywordString("WeapTypeMace")) {
+        score += scoreSettings.oneHandMaceScore;
+    } else if (weapon->HasKeywordString("WeapTypeWarAxe")) {
+        score += scoreSettings.oneHandAxeScore;
+    } else if (weapon->HasKeywordString("WeapTypeSword")) {
+        score += scoreSettings.oneHandSwordScore;
+    } else if (weapon->HasKeywordString("WeapTypeDagger")) {
+        score += scoreSettings.oneHandDaggerScore;
     }
 
     const auto actorValue = weapon->weaponData.skill.get();
@@ -154,6 +161,10 @@ double OnMeleeHit::GetScore(RE::Actor* actor, const RE::TESObjectWEAP* weapon,
 
     if (actorAI->high->attackData->data.flags.any(RE::AttackData::AttackFlag::kPowerAttack)) {
         score += scoreSettings.powerAttackScore;
+    }
+
+    if (actor->IsPlayerRef()) {
+        score += scoreSettings.playerScore;
     }
 
     return score;
@@ -239,7 +250,7 @@ bool OnMeleeHit::GetWeaponPositions(RE::Actor* actor, RE::AIProcess* const aiPro
     if (!bone) 
         return false;
 
-    const float reach = GetReach(actor) * 0.75f;
+    const float reach = Actor_GetReach(actor) * 0.75f;
     outFrom = bone->world.translate;
     const auto weaponDirection =
         RE::NiPoint3{bone->world.rotate.entry[0][1], bone->world.rotate.entry[1][1], bone->world.rotate.entry[2][1]};
@@ -290,23 +301,22 @@ float OnMeleeHit::dist(const RE::NiPoint3& A, const RE::NiPoint3& B, const RE::N
 }
 
 // From: https://github.com/fenix31415/UselessFenixUtils
-void OnMeleeHit::play_sound(RE::TESObjectREFR* object, int formid) {
+void OnMeleeHit::play_sound(RE::TESObjectREFR* object, RE::FormID formid) {
     RE::BSSoundHandle handle;
     handle.soundID = static_cast<uint32_t>(-1);
     handle.assumeSuccess = false;
     *(uint32_t*)&handle.state = 0;
 
-    auto manager = _generic_foo_<66391, void*()>::eval();
-    _generic_foo_<66401, int(void*, RE::BSSoundHandle*, int, int)>::eval(manager, &handle, formid, 16);
-    if (_generic_foo_<66370, bool(RE::BSSoundHandle*, float, float, float)>::eval(
-            &handle, object->data.location.x, object->data.location.y, object->data.location.z)) {
-        _generic_foo_<66375, void(RE::BSSoundHandle*, RE::NiAVObject*)>::eval(&handle, object->Get3D());
-        _generic_foo_<66355, bool(RE::BSSoundHandle*)>::eval(&handle);
+    auto manager = RE::BSAudioManager::GetSingleton();
+    if (manager) {
+        soundHelper_a(manager, &handle, formid, 16);
+        if (set_sound_position(&handle, object->data.location.x, object->data.location.y, object->data.location.z)) {
+            handle.SetVolume(1.f);
+            soundHelper_b(&handle, object->Get3D());
+            soundHelper_c(&handle);
+        }
     }
 }
-
-// From: https://github.com/fenix31415/UselessFenixUtils
-float OnMeleeHit::GetReach(RE::Actor* a) { return _generic_foo_<37588, decltype(GetReach)>::eval(a); }
 
 bool OnMeleeHit::play_impact_1(RE::Actor* actor, const RE::BSFixedString& nodeName) {
     auto root = netimmerse_cast<RE::BSFadeNode*>(actor->Get3D());
@@ -314,7 +324,7 @@ bool OnMeleeHit::play_impact_1(RE::Actor* actor, const RE::BSFixedString& nodeNa
     auto bone = netimmerse_cast<RE::NiNode*>(root->GetObjectByName(nodeName));
     if (!bone) return false;
 
-    float reach = GetReach(actor) * 0.75f * 0.5f;
+    float reach = Actor_GetReach(actor) * 0.75f * 0.5f;
     auto weaponDirection =
         RE::NiPoint3{bone->world.rotate.entry[0][1], bone->world.rotate.entry[1][1], bone->world.rotate.entry[2][1]};
     RE::NiPoint3 to = bone->world.translate + weaponDirection * reach;
@@ -329,11 +339,9 @@ bool OnMeleeHit::play_impact_2(RE::TESObjectREFR* a, RE::BGSImpactData* impact, 
     return play_impact_3(a->GetParentCell(), 1.0f, impact->GetModel(), P_V, P_from, 1.0f, 7, bone);
 }
 
-// From: https://github.com/fenix31415/UselessFenixUtils
-bool OnMeleeHit::play_impact_3(RE::TESObjectCELL* cell, float one, const char* model, RE::NiPoint3* P_V,
-                             RE::NiPoint3* P_from,
-                 float a6, uint32_t _7, RE::NiNode* a8) {
-    return _generic_foo_<29218, decltype(play_impact_3)>::eval(cell, one, model, P_V, P_from, a6, _7, a8);
+bool OnMeleeHit::play_impact_3(RE::TESObjectCELL* cell, float a_lifetime, const char* model, RE::NiPoint3* a_rotation,
+                               RE::NiPoint3* a_position, float a_scale, uint32_t a_flags, RE::NiNode* a_target) {
+    return RE::BSTempEffectParticle::Spawn(cell, a_lifetime, model, *a_rotation, *a_position, a_scale, a_flags, a_target);
 }
 
 PRECISION_API::WeaponCollisionCallbackReturn OnMeleeHit::PrecisionWeaponsCallback(
