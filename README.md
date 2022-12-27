@@ -17,9 +17,8 @@ At runtime, the plugin has the following requirements. Any user of this plugin (
 
 - The Elder Scrolls V: Skyrim Special Edition.
   - Tested with version 1.5.97 (SSE).
-  - Assumed compatible with version 1.6.353 (reported by users for [fenix31415's mod](https://www.nexusmods.com/skyrimspecialedition/mods/65133), 
-  which uses the same hooks that I do.
-  - Not compatible with other versions.
+  - Assumed compatible with versions 1.6.353 and above as of version 2.0.0.
+  - Assumed *not* compatible with Skyrim VR (but maybe it is).
 - [Skyrim Script Extender](https://skse.silverlock.org/)
 - [Address Library for SKSE Plugins](https://www.nexusmods.com/skyrimspecialedition/mods/32444)
 
@@ -41,6 +40,8 @@ Thanks to:
 - [max-su-2019](https://github.com/max-su-2019/) and [doodlum](https://github.com/doodlum/) for source code from 
 [MaxsuWeaponSwingParry-ng](https://github.com/doodlum/MaxsuWeaponSwingParry-ng).
 - [powerof3](https://github.com/powerof3/) for code I used as example for reading/writing .ini files.
+- [ersh1](https://github.com/ersh1) for some code and hooks I used from [Precision](https://github.com/ersh1/Precision).
+- [D7ry](https://github.com/D7ry) for some code and hooks I used from [Valhalla Combat](https://github.com/D7ry/valhallaCombat).
 - CharmedBaryon for [CommonLibSSE NG](https://github.com/CharmedBaryon/CommonLibSSE-NG) and the [CommonLibSSE NG Sample Plugin](https://gitlab.com/colorglass/commonlibsse-sample-plugin).
 - The SKSE authors for [SKSE](http://skse.silverlock.org/).
 - Meh321 for [Address Library for SKSE Plugins](https://www.nexusmods.com/skyrimspecialedition/mods/32444).
