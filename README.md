@@ -17,7 +17,7 @@ At runtime, the plugin has the following requirements. Any user of this plugin (
 
 - The Elder Scrolls V: Skyrim Special Edition.
   - Tested with version 1.5.97 (SSE).
-  - Assumed compatible with versions 1.6.353 and above as of version 2.0.0.
+  - Compatible with versions 1.6.353 and above as of version 2.0.0.
   - Assumed *not* compatible with Skyrim VR (but maybe it is).
 - [Skyrim Script Extender](https://skse.silverlock.org/)
 - [Address Library for SKSE Plugins](https://www.nexusmods.com/skyrimspecialedition/mods/32444)
