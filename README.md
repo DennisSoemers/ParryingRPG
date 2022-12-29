@@ -4,7 +4,7 @@
 ![GitHub](https://img.shields.io/github/license/DennisSoemers/ParryingRPG)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/DennisSoemers/ParryingRPG)
 
-A reimplementation of fenix31415's [fenix31415's Parrying mod](https://www.nexusmods.com/skyrimspecialedition/mods/65133) for Skyrim, 
+A reimplementation of [fenix31415's Parrying mod](https://www.nexusmods.com/skyrimspecialedition/mods/65133) for Skyrim, 
 with some additional features. 
 
 ## Download
