@@ -6,7 +6,7 @@ message("Using toolchain file ${CMAKE_TOOLCHAIN_FILE}.")
 ########################################################################################################################
 project(
         ParryingRPG
-        VERSION 1.0.0
+        VERSION 2.0.1
         DESCRIPTION "A reimplementation of fenix31415's Parrying mod for Skyrim, with some additional features."
         LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
